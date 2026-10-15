@@ -59,7 +59,15 @@ export default function SmartSCMControlCenter() {
   ];
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-200 p-4 md:p-8 font-sans selection:bg-blue-500/30">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-200 p-4 md:p-8 selection:bg-blue-500/30 font-['Google_Sans',sans-serif]">
+      {/* Tích hợp trực tiếp Google Sans Font */}
+      <style>{`
+        @import url('https://fonts.cdnfonts.com/css/google-sans');
+        * {
+          font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
+        }
+      `}</style>
+
       <div className="max-w-7xl mx-auto">
         
         {/* Header với Nhận diện Nhóm 8 - UTH */}
@@ -76,8 +84,8 @@ export default function SmartSCMControlCenter() {
             <p className="text-slate-300 mt-2 text-sm font-semibold tracking-wide uppercase">
               Trung tâm điều hành chuỗi cung ứng thời gian thực
             </p>
-            <p className="text-slate-400 text-xs mt-1 flex items-center gap-1.5 font-medium">
-              <span>🏛️</span> Môn Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
+            <p className="text-slate-400 text-xs mt-1.5 flex items-center gap-1.5 font-medium">
+              <span>🏛️</span> Học phần: 012001604334 • Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
             </p>
           </div>
           
@@ -214,7 +222,7 @@ export default function SmartSCMControlCenter() {
             ĐỒ ÁN NGHIÊN CỨU & MÔ PHỎNG SỐ: <span className="text-blue-400 font-extrabold">NHÓM 8</span>
           </p>
           <p className="mt-1 text-slate-500">
-            Học phần: Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
+            Học phần: 012001604334 • Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
           </p>
         </div>
 
