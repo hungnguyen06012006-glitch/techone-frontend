@@ -156,4 +156,35 @@ export default function SmartSCMControlCenter() {
                 <PieChart>
                   <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" stroke="none">
                     {chartData.map((entry, index) => (
-                      <Cell key={
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip contentStyle={{backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px'}} itemStyle={{fontWeight: 'bold'}}/>
+                  <Legend verticalAlign="middle" align="right" layout="vertical" wrapperStyle={{fontSize: '12px', fontWeight: '500', color: '#cbd5e1'}}/>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="space-y-4 mt-auto">
+              <div className="bg-black/30 p-4 rounded-2xl border border-white/5 flex justify-between items-center group hover:bg-black/40 transition-colors">
+                <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Tác động Tài chính<br/><span className="text-white/30 text-[10px]">Delta Cost</span></div>
+                <div className={`text-2xl font-black tracking-tight ${deltaCost > 0 ? 'text-rose-400 drop-shadow-[0_0_10px_rgba(225,29,72,0.8)]' : 'text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]'}`}>
+                  {deltaCost > 0 ? `+${deltaCost.toLocaleString()} ₫` : `${deltaCost.toLocaleString()} ₫`}
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-rose-900/40 to-black/40 p-4 rounded-2xl border border-rose-500/30 flex justify-between items-center relative overflow-hidden group">
+                <div className="absolute inset-0 bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="text-xs text-rose-300 uppercase font-bold tracking-wider z-10">Báo động ROP<br/><span className="text-rose-400/50 text-[10px]">Dynamic Reorder Point</span></div>
+                <div className="text-4xl font-black text-rose-400 tracking-tighter drop-shadow-[0_0_15px_rgba(225,29,72,0.6)] z-10">
+                  {dynamicRop.toLocaleString()} <span className="text-sm font-medium text-rose-400/60 uppercase tracking-widest">chiếc</span>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
