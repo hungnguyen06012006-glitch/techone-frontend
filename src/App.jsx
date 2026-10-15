@@ -4,7 +4,7 @@ export default function SmartSCMControlCenter() {
   // Trạng thái đầu vào mô phỏng
   const [defectRate, setDefectRate] = useState(0.5); 
   const [leadTime, setLeadTime] = useState(8); 
-  const [orderVolume, setOrderVolume] = useState(1200);
+  const [orderVolume, setOrderVolume] = useState(1200); // Biến EOQ giờ đã có thể tùy chỉnh
 
   // Trạng thái kết quả mô phỏng
   const [alphaShare, setAlphaShare] = useState(80);
@@ -15,9 +15,9 @@ export default function SmartSCMControlCenter() {
   const [deltaCost, setDeltaCost] = useState(0);
   const [isCritical, setIsCritical] = useState(false);
 
-  // Thuật toán tích hợp sẵn xử lý trực tiếp ngay trên Frontend
+  // Thuật toán tích hợp
   const handleRunSimulation = () => {
-    // 1. Tính ROP động dựa trên Lead Time mới (d = 60 chiếc/ngày, SS = 200 chiếc)
+    // 1. Tính ROP động
     const calculatedRop = Math.round((60 * leadTime) + 200);
     setDynamicRop(calculatedRop);
 
@@ -27,13 +27,13 @@ export default function SmartSCMControlCenter() {
     let critical = false;
     let style = "";
 
-    // 2. Thuật toán AI điều hướng theo AQL Threshold (1.0%)
+    // 2. Thuật toán AI điều hướng theo AQL
     if (defectRate > 1.0) {
       alpha = 0;
       beta = 100;
       critical = true;
       style = "bg-rose-950/80 border-rose-500 text-rose-300 animate-pulse";
-      msg = `⚠️ CẢNH BÁO KHẨN CẤP: Lô CAP-X7R lỗi ${defectRate}% (Vượt định mức AQL 1.0%). AI tự động kích hoạt Dual Sourcing: Đóng băng Alpha, chuyển 100% PO sang Beta (Việt Nam) để cứu chuyền SMT!`;
+      msg = `⚠️ CẢNH BÁO KHẨN CẤP: Lô CAP-X7R lỗi ${defectRate}% (Vượt định mức AQL 1.0%). AI tự động kích hoạt Dual Sourcing: Đóng băng Alpha, chuyển 100% PO sang Beta (Việt Nam)!`;
     } else {
       alpha = 80;
       beta = 20;
@@ -48,7 +48,7 @@ export default function SmartSCMControlCenter() {
     setSystemMsg(msg);
     setIsCritical(critical);
 
-    // 3. Phân tích tài chính chênh lệch chi phí (Delta Cost)
+    // 3. Phân tích tài chính theo Lượng đặt hàng (EOQ) Tùy chỉnh
     const priceAlpha = 250000;
     const priceBeta = 260000;
     const baseCost = (0.8 * priceAlpha + 0.2 * priceBeta) * orderVolume;
@@ -72,7 +72,7 @@ export default function SmartSCMControlCenter() {
           </div>
         </div>
 
-        {/* Trạm Cảnh báo Trạng thái (Alert Banner) */}
+        {/* Trạm Cảnh báo */}
         <div className={`p-5 rounded-2xl mb-8 border shadow-2xl transition-all duration-300 ${statusStyle}`}>
           <div className="flex items-center gap-3">
             <span className="text-2xl">{isCritical ? "🚨" : "🛡️"}</span>
@@ -85,14 +85,14 @@ export default function SmartSCMControlCenter() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
-          {/* Module 1: Bảng Nhập Liệu Mô Phỏng Rủi Ro */}
+          {/* Module 1: Input */}
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col justify-between">
             <div>
               <h2 className="text-xl font-bold mb-6 text-blue-400 flex items-center gap-2">
                 <span>🎛️</span> 1. Mô Phỏng Biến Động Nhà Cung Ứng
               </h2>
               
-              {/* Thanh trượt Tỷ lệ lỗi */}
+              {/* Tỷ lệ lỗi */}
               <div className="mb-6">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-slate-300 font-medium">Tỷ lệ lỗi thực tế của Alpha (AQL Max: 1.0%):</label>
@@ -108,8 +108,24 @@ export default function SmartSCMControlCenter() {
                 />
               </div>
 
-              {/* Thanh trượt Lead time */}
+              {/* Tùy chỉnh EOQ (Mới thêm) */}
               <div className="mb-6">
+                <div className="flex justify-between items-center mb-2">
+                  <label className="text-slate-300 font-medium">Lượng đặt hàng (EOQ / PO Volume):</label>
+                  <span className="text-lg font-bold text-emerald-400 bg-slate-800 px-3 py-1 rounded-lg">
+                    {orderVolume.toLocaleString()} Chiếc
+                  </span>
+                </div>
+                <input 
+                  type="range" min="500" max="5000" step="100" 
+                  value={orderVolume} 
+                  onChange={(e) => setOrderVolume(parseInt(e.target.value))}
+                  className="w-full accent-emerald-500 cursor-pointer h-2 bg-slate-800 rounded-lg"
+                />
+              </div>
+
+              {/* Lead time */}
+              <div className="mb-4">
                 <div className="flex justify-between items-center mb-2">
                   <label className="text-slate-300 font-medium">Thời gian giao hàng (Lead Time):</label>
                   <span className="text-lg font-bold text-amber-400 bg-slate-800 px-3 py-1 rounded-lg">
@@ -133,18 +149,18 @@ export default function SmartSCMControlCenter() {
             </button>
           </div>
 
-          {/* Module 2: Quyết định phân bổ đơn hàng */}
+          {/* Module 2: Allocation */}
           <div className="bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl flex flex-col justify-between">
             <div>
               <h2 className="text-xl font-bold mb-4 text-emerald-400 flex items-center gap-2">
-                <span>📊</span> 2. Quyết Định Điều Hướng (Dual Sourcing Allocation)
+                <span>📊</span> 2. Quyết Định Điều Hướng (Dual Sourcing)
               </h2>
               <p className="text-xs text-slate-400 mb-6">Tỷ lệ phân bổ đơn hàng tự động co giãn theo phương án của hệ thống.</p>
               
               <div className="space-y-6">
                 <div>
                   <div className="flex justify-between text-sm mb-2 font-semibold">
-                    <span className="text-blue-400">Nhà cung cấp Alpha (Đài Loan - Chủ lực)</span>
+                    <span className="text-blue-400">Nhà cung cấp Alpha (Chủ lực)</span>
                     <span className="text-lg text-blue-400">{alphaShare}%</span>
                   </div>
                   <div className="w-full bg-slate-800 h-4 rounded-full overflow-hidden p-0.5 border border-slate-700">
@@ -154,7 +170,7 @@ export default function SmartSCMControlCenter() {
 
                 <div>
                   <div className="flex justify-between text-sm mb-2 font-semibold">
-                    <span className="text-orange-400">Nhà cung cấp Beta (Việt Nam - Dự phòng)</span>
+                    <span className="text-orange-400">Nhà cung cấp Beta (Dự phòng)</span>
                     <span className="text-lg text-orange-400">{betaShare}%</span>
                   </div>
                   <div className="w-full bg-slate-800 h-4 rounded-full overflow-hidden p-0.5 border border-slate-700">
@@ -164,18 +180,19 @@ export default function SmartSCMControlCenter() {
               </div>
             </div>
 
-            {/* Tài chính chênh lệch */}
+            {/* Tài chính */}
             <div className="mt-6 pt-4 border-t border-slate-800 bg-slate-950 p-3.5 rounded-xl">
               <div className="text-xs text-slate-400 uppercase font-semibold">Tác động tài chính (Delta Cost):</div>
               <div className={`text-lg font-bold mt-0.5 ${deltaCost > 0 ? 'text-amber-400' : 'text-emerald-400'}`}>
                 {deltaCost > 0 ? `+${deltaCost.toLocaleString()} VNĐ` : `${deltaCost.toLocaleString()} VNĐ`}
               </div>
+              <div className="text-xs text-slate-500 mt-1">Dựa trên khối lượng đặt hàng: {orderVolume.toLocaleString()} chiếc.</div>
             </div>
           </div>
 
         </div>
 
-        {/* Module 3: Digital Twin & Dynamic ROP */}
+        {/* Module 3: Digital Twin */}
         <div className="mt-6 bg-slate-900 border border-slate-800 p-6 rounded-2xl shadow-xl">
           <h2 className="text-xl font-bold mb-2 text-purple-400 flex items-center gap-2">
             <span>📈</span> 3. Digital Twin: Quản Trị Tồn Kho Tự Động (Dynamic ROP)
@@ -185,13 +202,13 @@ export default function SmartSCMControlCenter() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
             <div className="bg-slate-950 p-5 rounded-xl border border-slate-800 shadow-inner">
               <span className="text-slate-400 text-xs uppercase font-semibold block">Lượng đặt hàng (EOQ)</span>
-              <span className="text-3xl font-extrabold text-blue-400 mt-2 block">1,200</span>
+              <span className="text-3xl font-extrabold text-blue-400 mt-2 block">{orderVolume.toLocaleString()}</span>
               <span className="text-xs text-slate-500 mt-1 block">Chiếc / Lô tiêu chuẩn</span>
             </div>
             
             <div className="bg-slate-950 p-5 rounded-xl border border-slate-800 shadow-inner relative overflow-hidden">
               <span className="text-slate-400 text-xs uppercase font-semibold block">Điểm ROP Động</span>
-              <span className="text-3xl font-extrabold text-rose-400 mt-2 block">{dynamicRop}</span>
+              <span className="text-3xl font-extrabold text-rose-400 mt-2 block">{dynamicRop.toLocaleString()}</span>
               <span className="text-xs text-slate-500 mt-1 block">Tự động co giãn theo Lead Time</span>
             </div>
             
