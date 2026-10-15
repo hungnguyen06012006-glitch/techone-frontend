@@ -137,4 +137,88 @@ export default function SmartSCMControlCenter() {
               <div className="space-y-8">
                 <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
                   <div className="flex justify-between mb-3 text-sm">
-                    <label className="text-slate-30
+                    <label className="text-slate-300 font-medium">Tỷ lệ lỗi lô hàng (Defect Rate)</label>
+                    <span className={`font-black text-lg ${defectRate > aqlThreshold ? 'text-rose-400' : 'text-amber-400'}`}>{defectRate}%</span>
+                  </div>
+                  <input type="range" min="0" max="3" step="0.1" value={defectRate} onChange={(e) => setDefectRate(parseFloat(e.target.value))} className="w-full accent-rose-500 h-2 bg-white/10 rounded-lg cursor-pointer" />
+                </div>
+
+                <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
+                  <div className="flex justify-between mb-3 text-sm">
+                    <label className="text-slate-300 font-medium">Độ trễ vận tải (Lead Time)</label>
+                    <span className="font-black text-lg text-amber-400">{leadTime} Ngày</span>
+                  </div>
+                  <input type="range" min="3" max="20" step="1" value={leadTime} onChange={(e) => setLeadTime(parseInt(e.target.value))} className="w-full accent-amber-500 h-2 bg-white/10 rounded-lg cursor-pointer" />
+                </div>
+              </div>
+            </div>
+
+            <button onClick={handleRunSimulation} className="relative z-10 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-4 px-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] mt-8 hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] hover:-translate-y-1 active:translate-y-0 uppercase tracking-widest text-sm">
+              🚀 Kích hoạt AI Mô Phỏng
+            </button>
+          </div>
+
+          {/* CỘT 3: KẾT QUẢ ĐẦU RA */}
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col">
+            <h2 className="text-sm uppercase tracking-widest font-bold mb-2 text-emerald-400 flex items-center gap-2">
+              <span className="p-1.5 bg-emerald-500/20 rounded-lg">📊</span> Bản sao số (Digital Twin)
+            </h2>
+            
+            {/* Biểu đồ Donut với Tooltip sáng rõ */}
+            <div className="h-48 w-full -ml-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" stroke="none">
+                    {chartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#090d16', 
+                      borderColor: 'rgba(255, 255, 255, 0.2)', 
+                      borderRadius: '12px',
+                      boxShadow: '0 8px 32px rgba(0,0,0,0.6)'
+                    }} 
+                    itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
+                    formatter={(value) => [`${value}%`, 'Tỷ lệ']}
+                  />
+                  <Legend verticalAlign="middle" align="right" layout="vertical" wrapperStyle={{fontSize: '12px', fontWeight: '500', color: '#cbd5e1'}}/>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="space-y-4 mt-auto">
+              <div className="bg-black/30 p-4 rounded-2xl border border-white/5 flex justify-between items-center group hover:bg-black/40 transition-colors">
+                <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Tác động Tài chính<br/><span className="text-white/30 text-[10px]">Delta Cost</span></div>
+                <div className={`text-2xl font-black tracking-tight ${deltaCost > 0 ? 'text-rose-400 drop-shadow-[0_0_10px_rgba(225,29,72,0.8)]' : 'text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]'}`}>
+                  {deltaCost > 0 ? `+${deltaCost.toLocaleString()} ₫` : `${deltaCost.toLocaleString()} ₫`}
+                </div>
+              </div>
+              
+              <div className="bg-gradient-to-br from-rose-900/40 to-black/40 p-4 rounded-2xl border border-rose-500/30 flex justify-between items-center relative overflow-hidden group">
+                <div className="absolute inset-0 bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <div className="text-xs text-rose-300 uppercase font-bold tracking-wider z-10">Báo động ROP<br/><span className="text-rose-400/50 text-[10px]">Dynamic Reorder Point</span></div>
+                <div className="text-4xl font-black text-rose-400 tracking-tighter drop-shadow-[0_0_15px_rgba(225,29,72,0.6)] z-10">
+                  {dynamicRop.toLocaleString()} <span className="text-sm font-medium text-rose-400/60 uppercase tracking-widest">chiếc</span>
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        </div>
+
+        {/* FOOTER BẢN QUYỀN NHÓM 8 - UTH */}
+        <div className="mt-12 text-center border-t border-white/10 pt-6 pb-2 text-slate-400 text-xs">
+          <p className="font-semibold text-slate-300 tracking-wide">
+            ĐỒ ÁN NGHIÊN CỨU & MÔ PHỎNG SỐ: <span className="text-blue-400 font-extrabold">NHÓM 8</span>
+          </p>
+          <p className="mt-1 text-slate-500">
+            Học phần: Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
+          </p>
+        </div>
+
+      </div>
+    </div>
+  );
+}
