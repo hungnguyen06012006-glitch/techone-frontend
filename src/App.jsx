@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
 export default function SmartSCMControlCenter() {
   // --- BIẾN SỐ NỘI BỘ (TECHONE) ---
@@ -7,441 +8,152 @@ export default function SmartSCMControlCenter() {
   const [safetyStock, setSafetyStock] = useState(200);  
   const [orderVolume, setOrderVolume] = useState(1200); 
 
-  // --- BIẾN SỐ RỦI RO (NHÀ CUNG CẤP ALPHA) ---
+  // --- BIẾN SỐ RỦI RO (NHÀ CUNG CẤP) ---
   const [defectRate, setDefectRate] = useState(0.5);    
   const [leadTime, setLeadTime] = useState(8);          
 
-  // --- TRẠNG THÁI KẾT QUẢ (TRI-SOURCING) ---
+  // --- TRẠNG THÁI KẾT QUẢ ---
   const [alphaShare, setAlphaShare] = useState(60);
   const [betaShare, setBetaShare] = useState(30);
   const [gammaShare, setGammaShare] = useState(10);
   
-  const [statusStyle, setStatusStyle] = useState("bg-emerald-900/60 border-emerald-500 text-emerald-300");
-  const [systemMsg, setSystemMsg] = useState("Hệ thống ổn định. Đang vận hành chiến lược Tri-Sourcing (Phân bổ: Alpha 60% - Beta 30% - Gamma 10%).");
+  const [statusStyle, setStatusStyle] = useState("bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]");
+  const [systemMsg, setSystemMsg] = useState("Hệ thống ổn định. Đang vận hành chiến lược Tri-Sourcing (Alpha 60% - Beta 30% - Gamma 10%).");
   const [dynamicRop, setDynamicRop] = useState(680);
   const [deltaCost, setDeltaCost] = useState(0);
   const [isCritical, setIsCritical] = useState(false);
 
-  // THUẬT TOÁN ĐIỀU HÀNH
+  // THUẬT TOÁN AI
   const handleRunSimulation = () => {
-    // 1. Tính ROP động
     const calculatedRop = Math.round((dailyDemand * leadTime) + safetyStock);
     setDynamicRop(calculatedRop);
 
-    let alpha = 60;
-    let beta = 30;
-    let gamma = 10;
-    let msg = "";
-    let critical = false;
-    let style = "";
+    let alpha = 60, beta = 30, gamma = 10;
+    let msg = "", critical = false, style = "";
 
-    // 2. AI Ra quyết định (Multi-Sourcing Allocation)
     if (defectRate > aqlThreshold) {
-      alpha = 0;
-      beta = 70;
-      gamma = 30;
+      alpha = 0; beta = 70; gamma = 30;
       critical = true;
-      style = "bg-rose-950/80 border-rose-500 text-rose-300 animate-pulse";
-      msg = `⚠️ BÁO ĐỘNG: Lỗi Alpha (${defectRate}%) vượt AQL (${aqlThreshold}%). AI ngắt PO Alpha, phân bổ khẩn cấp cho Beta (70% - Tốc độ) & Gamma (30% - Chi phí)!`;
+      style = "bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse shadow-[0_0_30px_rgba(225,29,72,0.4)]";
+      msg = `⚠️ BÁO ĐỘNG SMT: Lỗi Alpha (${defectRate}%) vượt AQL. Kích hoạt khẩn cấp: Ngắt PO Alpha, chuyển sang Beta (70%) & Gamma (30%)!`;
     } else {
-      alpha = 60;
-      beta = 30;
-      gamma = 10;
       critical = false;
-      style = "bg-emerald-950/80 border-emerald-500 text-emerald-300";
-      msg = `Chuỗi cung ứng an toàn. Tỷ lệ lỗi (${defectRate}%) đạt chuẩn. Giữ nguyên cấu trúc Multi-Sourcing 60/30/10.`;
+      style = "bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]";
+      msg = `Chuỗi cung ứng an toàn. Tỷ lệ lỗi (${defectRate}%) đạt chuẩn. Giữ nguyên cấu trúc Multi-Sourcing.`;
     }
 
-    setAlphaShare(alpha);
-    setBetaShare(beta);
-    setGammaShare(gamma);
-    setStatusStyle(style);
-    setSystemMsg(msg);
-    setIsCritical(critical);
+    setAlphaShare(alpha); setBetaShare(beta); setGammaShare(gamma);
+    setStatusStyle(style); setSystemMsg(msg); setIsCritical(critical);
 
-    // 3. Phân tích tài chính cho 3 nguồn cung
-    const priceAlpha = 250000;
-    const priceBeta = 260000;
-    const priceGamma = 245000; // Nguồn Ấn Độ giá rẻ hơn
-    
+    const priceAlpha = 250000, priceBeta = 260000, priceGamma = 245000;
     const baseCost = (0.6 * priceAlpha + 0.3 * priceBeta + 0.1 * priceGamma) * orderVolume;
     const newCost = ((alpha / 100) * priceAlpha + ((beta / 100) * priceBeta) + ((gamma / 100) * priceGamma)) * orderVolume;
     setDeltaCost(newCost - baseCost);
   };
 
+  // Dữ liệu cho biểu đồ Donut
+  const chartData = [
+    { name: 'Alpha (Đài Loan)', value: alphaShare, color: '#3b82f6' },
+    { name: 'Beta (Việt Nam)', value: betaShare, color: '#f97316' },
+    { name: 'Gamma (Ấn Độ)', value: gammaShare, color: '#a855f7' }
+  ];
+
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 font-sans">
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-200 p-4 md:p-8 font-sans selection:bg-blue-500/30">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header */}
-        <div className="mb-6 border-b border-slate-800 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Header với Gradient Text */}
+        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
           <div>
-            <h1 className="text-3xl font-extrabold text-blue-400 tracking-tight">TechOne Smart SCM Control Center</h1>
-            <p className="text-slate-400 mt-1 text-sm">Hệ thống điều hành chuỗi cung ứng Đa Nguồn (Multi-Sourcing) & Digital Twin</p>
+            <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 tracking-tight drop-shadow-sm">
+              TechOne Smart SCM
+            </h1>
+            <p className="text-slate-400 mt-2 text-sm font-medium tracking-wide uppercase">Trung tâm điều hành chuỗi cung ứng thời gian thực</p>
+          </div>
+          <div className="flex gap-3">
+            <span className="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-xs font-bold tracking-widest text-blue-300">MCU-ARM32</span>
+            <span className="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-xs font-bold tracking-widest text-purple-300">CAP-X7R</span>
           </div>
         </div>
 
-        {/* Trạm Cảnh báo */}
-        <div className={`p-4 rounded-xl mb-6 border shadow-2xl transition-all duration-300 ${statusStyle}`}>
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{isCritical ? "🚨" : "🛡️"}</span>
-            <div>
-              <h2 className="text-xs uppercase tracking-wider font-bold opacity-70">AI Control Center:</h2>
-              <p className="text-base font-semibold mt-0.5">{systemMsg}</p>
-            </div>
+        {/* Trạm Cảnh báo (Glassmorphism) */}
+        <div className={`p-5 rounded-2xl mb-8 border backdrop-blur-md transition-all duration-500 flex items-center gap-4 ${statusStyle}`}>
+          <div className="text-4xl drop-shadow-lg">{isCritical ? "🚨" : "🛡️"}</div>
+          <div>
+            <h2 className="text-xs uppercase tracking-widest font-black opacity-80 mb-1">Trạng thái hệ thống AI</h2>
+            <p className="text-lg font-bold tracking-tight">{systemMsg}</p>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
-          {/* CỘT 1: BIẾN SỐ NỘI BỘ */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-            <h2 className="text-lg font-bold mb-5 text-indigo-400 flex items-center gap-2">
-              <span>⚙️</span> 1. Cấu hình Nội bộ (TechOne)
+          {/* CỘT 1: THIẾT LẬP NỘI BỘ */}
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl">
+            <h2 className="text-sm uppercase tracking-widest font-bold mb-6 text-indigo-400 flex items-center gap-2">
+              <span className="p-1.5 bg-indigo-500/20 rounded-lg">⚙️</span> Cấu hình TechOne
             </h2>
-            
-            <div className="space-y-5">
-              <div>
-                <div className="flex justify-between mb-1.5 text-sm">
-                  <label className="text-slate-300">Ngưỡng chấp nhận lỗi (AQL):</label>
-                  <span className="font-bold text-indigo-300">{aqlThreshold}%</span>
+            <div className="space-y-6">
+              {[
+                { label: "Ngưỡng AQL", val: `${aqlThreshold}%`, setter: setAqlThreshold, state: aqlThreshold, min: 0.1, max: 2.0, step: 0.1, color: "accent-indigo-500" },
+                { label: "Nhu cầu ngày", val: dailyDemand, setter: setDailyDemand, state: dailyDemand, min: 20, max: 150, step: 10, color: "accent-cyan-500" },
+                { label: "Tồn kho an toàn", val: safetyStock, setter: setSafetyStock, state: safetyStock, min: 50, max: 500, step: 50, color: "accent-emerald-500" },
+                { label: "Lượng đặt hàng", val: orderVolume.toLocaleString(), setter: setOrderVolume, state: orderVolume, min: 500, max: 5000, step: 100, color: "accent-blue-500" }
+              ].map((item, idx) => (
+                <div key={idx} className="group">
+                  <div className="flex justify-between mb-2 text-sm">
+                    <label className="text-slate-400 font-medium group-hover:text-slate-200 transition-colors">{item.label}</label>
+                    <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded-md">{item.val}</span>
+                  </div>
+                  <input type="range" min={item.min} max={item.max} step={item.step} value={item.state} onChange={(e) => item.setter(parseFloat(e.target.value))} className={`w-full h-1.5 bg-white/10 rounded-lg cursor-pointer ${item.color}`} />
                 </div>
-                <input type="range" min="0.1" max="2.0" step="0.1" value={aqlThreshold} onChange={(e) => setAqlThreshold(parseFloat(e.target.value))} className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1.5 text-sm">
-                  <label className="text-slate-300">Nhu cầu SX ngày (Daily Demand):</label>
-                  <span className="font-bold text-cyan-400">{dailyDemand} chiếc/ngày</span>
-                </div>
-                <input type="range" min="20" max="150" step="10" value={dailyDemand} onChange={(e) => setDailyDemand(parseInt(e.target.value))} className="w-full accent-cyan-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1.5 text-sm">
-                  <label className="text-slate-300">Tồn kho an toàn (Safety Stock):</label>
-                  <span className="font-bold text-emerald-400">{safetyStock} chiếc</span>
-                </div>
-                <input type="range" min="50" max="500" step="50" value={safetyStock} onChange={(e) => setSafetyStock(parseInt(e.target.value))} className="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1.5 text-sm">
-                  <label className="text-slate-300">Lượng đặt hàng (EOQ):</label>
-                  <span className="font-bold text-blue-400">{orderVolume.toLocaleString()} chiếc</span>
-                </div>
-                <input type="range" min="500" max="5000" step="100" value={orderVolume} onChange={(e) => setOrderVolume(parseInt(e.target.value))} className="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
-              </div>
+              ))}
             </div>
           </div>
 
-          {/* CỘT 2: RỦI RO ĐỐI TÁC */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col justify-between">
-            <div>
-              <h2 className="text-lg font-bold mb-5 text-amber-400 flex items-center gap-2">
-                <span>⚠️</span> 2. Biến động Nhà cung ứng (Alpha)
+          {/* CỘT 2: GIẢ LẬP RỦI RO */}
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col justify-between relative overflow-hidden">
+            {/* Background glow effect */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/10 blur-3xl rounded-full"></div>
+            
+            <div className="relative z-10">
+              <h2 className="text-sm uppercase tracking-widest font-bold mb-6 text-rose-400 flex items-center gap-2">
+                <span className="p-1.5 bg-rose-500/20 rounded-lg">⚠️</span> Cú sốc Chuỗi cung ứng
               </h2>
               
-              <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between mb-2 text-sm">
-                    <label className="text-slate-300">Tỷ lệ lỗi lô hàng thực tế (Defect Rate):</label>
-                    <span className={`font-bold px-2 py-0.5 rounded ${defectRate > aqlThreshold ? 'bg-rose-900/80 text-rose-300' : 'text-amber-400'}`}>{defectRate}%</span>
+              <div className="space-y-8">
+                <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
+                  <div className="flex justify-between mb-3 text-sm">
+                    <label className="text-slate-300 font-medium">Tỷ lệ lỗi lô hàng (Defect Rate)</label>
+                    <span className={`font-black text-lg ${defectRate > aqlThreshold ? 'text-rose-400' : 'text-amber-400'}`}>{defectRate}%</span>
                   </div>
-                  <input type="range" min="0" max="3" step="0.1" value={defectRate} onChange={(e) => setDefectRate(parseFloat(e.target.value))} className="w-full accent-rose-500 h-2 bg-slate-800 rounded-lg cursor-pointer" />
+                  <input type="range" min="0" max="3" step="0.1" value={defectRate} onChange={(e) => setDefectRate(parseFloat(e.target.value))} className="w-full accent-rose-500 h-2 bg-white/10 rounded-lg cursor-pointer" />
                 </div>
 
-                <div>
-                  <div className="flex justify-between mb-2 text-sm">
-                    <label className="text-slate-300">Thời gian giao hàng (Lead Time):</label>
-                    <span className="font-bold text-amber-400">{leadTime} Ngày</span>
+                <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
+                  <div className="flex justify-between mb-3 text-sm">
+                    <label className="text-slate-300 font-medium">Độ trễ vận tải (Lead Time)</label>
+                    <span className="font-black text-lg text-amber-400">{leadTime} Ngày</span>
                   </div>
-                  <input type="range" min="3" max="20" step="1" value={leadTime} onChange={(e) => setLeadTime(parseInt(e.target.value))} className="w-full accent-amber-500 h-2 bg-slate-800 rounded-lg cursor-pointer" />
+                  <input type="range" min="3" max="20" step="1" value={leadTime} onChange={(e) => setLeadTime(parseInt(e.target.value))} className="w-full accent-amber-500 h-2 bg-white/10 rounded-lg cursor-pointer" />
                 </div>
               </div>
             </div>
 
-            <button onClick={handleRunSimulation} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/20 mt-6 active:scale-95 border border-blue-400/30 uppercase text-sm tracking-wide">
-              Chạy AI Điều Phối Chuỗi Cung Ứng
+            <button onClick={handleRunSimulation} className="relative z-10 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-4 px-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] mt-8 hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] hover:-translate-y-1 active:translate-y-0 uppercase tracking-widest text-sm">
+              🚀 Kích hoạt AI Mô Phỏng
             </button>
           </div>
 
-          {/* CỘT 3: BÁO CÁO ALLOCATION & TÀI CHÍNH */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col justify-between">
-            <div>
-              <h2 className="text-lg font-bold mb-5 text-emerald-400 flex items-center gap-2">
-                <span>📊</span> 3. Kết quả Multi-Sourcing
-              </h2>
-              
-              {/* Allocation */}
-              <div className="space-y-3 mb-6">
-                <div>
-                  <div className="flex justify-between text-xs mb-1 font-semibold text-slate-400">
-                    <span>Alpha (Đài Loan - Chủ lực)</span>
-                    <span className="text-blue-400">{alphaShare}%</span>
-                  </div>
-                  <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
-                    <div className="bg-blue-500 h-full rounded-full transition-all duration-500" style={{ width: `${alphaShare}%` }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs mb-1 font-semibold text-slate-400">
-                    <span>Beta (Việt Nam - Nhanh)</span>
-                    <span className="text-orange-400">{betaShare}%</span>
-                  </div>
-                  <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
-                    <div className="bg-orange-500 h-full rounded-full transition-all duration-500" style={{ width: `${betaShare}%` }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs mb-1 font-semibold text-slate-400">
-                    <span>Gamma (Ấn Độ - Giá rẻ)</span>
-                    <span className="text-purple-400">{gammaShare}%</span>
-                  </div>
-                  <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden border border-slate-700">
-                    <div className="bg-purple-500 h-full rounded-full transition-all duration-500" style={{ width: `${gammaShare}%` }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Tài chính & ROP */}
-            <div className="space-y-3">
-              <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex justify-between items-center">
-                <div className="text-xs text-slate-400 uppercase font-semibold">Chênh lệch chi phí<br/>(Delta Cost)</div>
-                <div className={`text-xl font-bold ${deltaCost > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                  {deltaCost > 0 ? `+${deltaCost.toLocaleString()} đ` : `${deltaCost.toLocaleString()} đ`}
-                </div>
-              </div>
-              
-              <div className="bg-slate-950 p-3.5 rounded-xl border border-rose-900/50 shadow-[0_0_15px_rgba(225,29,72,0.1)] flex justify-between items-center relative overflow-hidden">
-                <div className="text-xs text-rose-300/80 uppercase font-bold">Báo động ROP<br/>(Dynamic ROP)</div>
-                <div className="text-3xl font-black text-rose-400 tracking-tighter">
-                  {dynamicRop.toLocaleString()} <span className="text-sm font-medium text-rose-400/50 uppercase tracking-normal">Chiếc</span>
-                </div>
-              </div>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}import React, { useState } from 'react';
-
-export default function SmartSCMControlCenter() {
-  // --- BIẾN SỐ NỘI BỘ (TECHONE) ---
-  const [aqlThreshold, setAqlThreshold] = useState(1.0); // Ngưỡng chất lượng
-  const [dailyDemand, setDailyDemand] = useState(60);    // Nhu cầu ngày
-  const [safetyStock, setSafetyStock] = useState(200);   // Tồn kho an toàn
-  const [orderVolume, setOrderVolume] = useState(1200);  // Lượng đặt hàng EOQ
-
-  // --- BIẾN SỐ RỦI RO (NHÀ CUNG CẤP ALPHA) ---
-  const [defectRate, setDefectRate] = useState(0.5);     // Tỷ lệ lỗi thực tế
-  const [leadTime, setLeadTime] = useState(8);           // Thời gian giao hàng
-
-  // --- TRẠNG THÁI KẾT QUẢ ---
-  const [alphaShare, setAlphaShare] = useState(80);
-  const [betaShare, setBetaShare] = useState(20);
-  const [statusStyle, setStatusStyle] = useState("bg-emerald-900/60 border-emerald-500 text-emerald-300");
-  const [systemMsg, setSystemMsg] = useState("Hệ thống hoạt động ổn định. Đang ưu tiên phân bổ 80% cho Alpha (Đài Loan).");
-  const [dynamicRop, setDynamicRop] = useState(680);
-  const [deltaCost, setDeltaCost] = useState(0);
-  const [isCritical, setIsCritical] = useState(false);
-
-  // THUẬT TOÁN ĐIỀU HÀNH TRUNG TÂM
-  const handleRunSimulation = () => {
-    // 1. Digital Twin: Tính ROP động theo tất cả biến số (d * L + SS)
-    const calculatedRop = Math.round((dailyDemand * leadTime) + safetyStock);
-    setDynamicRop(calculatedRop);
-
-    let alpha = 80;
-    let beta = 20;
-    let msg = "";
-    let critical = false;
-    let style = "";
-
-    // 2. AI Ra quyết định (So sánh Tỷ lệ lỗi thực tế với Ngưỡng AQL động)
-    if (defectRate > aqlThreshold) {
-      alpha = 0;
-      beta = 100;
-      critical = true;
-      style = "bg-rose-950/80 border-rose-500 text-rose-300 animate-pulse";
-      msg = `⚠️ BÁO ĐỘNG SMT: Tỷ lệ lỗi thực tế (${defectRate}%) vượt mốc AQL cho phép (${aqlThreshold}%). AI kích hoạt Dual Sourcing: Chuyển 100% PO khẩn cấp sang Beta!`;
-    } else {
-      alpha = 80;
-      beta = 20;
-      critical = false;
-      style = "bg-emerald-950/80 border-emerald-500 text-emerald-300";
-      msg = `Chuỗi cung ứng an toàn. Tỷ lệ lỗi (${defectRate}%) đạt chuẩn AQL nội bộ (${aqlThreshold}%). Duy trì cấu trúc 80/20.`;
-    }
-
-    setAlphaShare(alpha);
-    setBetaShare(beta);
-    setStatusStyle(style);
-    setSystemMsg(msg);
-    setIsCritical(critical);
-
-    // 3. Phân tích tài chính
-    const priceAlpha = 250000;
-    const priceBeta = 260000;
-    const baseCost = (0.8 * priceAlpha + 0.2 * priceBeta) * orderVolume;
-    const newCost = ((alpha / 100) * priceAlpha + (beta / 100) * priceBeta) * orderVolume;
-    setDeltaCost(newCost - baseCost);
-  };
-
-  return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 p-4 md:p-8 font-sans">
-      <div className="max-w-7xl mx-auto">
-        
-        {/* Header */}
-        <div className="mb-6 border-b border-slate-800 pb-4 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold text-blue-400 tracking-tight">TechOne Smart SCM Control Center</h1>
-            <p className="text-slate-400 mt-1 text-sm">Hệ thống điều hành chuỗi cung ứng & Bản sao số (Digital Twin) thời gian thực</p>
-          </div>
-        </div>
-
-        {/* Trạm Cảnh báo */}
-        <div className={`p-4 rounded-xl mb-6 border shadow-2xl transition-all duration-300 ${statusStyle}`}>
-          <div className="flex items-center gap-3">
-            <span className="text-3xl">{isCritical ? "🚨" : "🛡️"}</span>
-            <div>
-              <h2 className="text-xs uppercase tracking-wider font-bold opacity-70">AI Control Center:</h2>
-              <p className="text-base font-semibold mt-0.5">{systemMsg}</p>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-          
-          {/* CỘT 1: BIẾN SỐ NỘI BỘ TECHONE */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl">
-            <h2 className="text-lg font-bold mb-5 text-indigo-400 flex items-center gap-2">
-              <span>⚙️</span> 1. Cấu hình Nội bộ (TechOne)
+          {/* CỘT 3: KẾT QUẢ ĐẦU RA */}
+          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col">
+            <h2 className="text-sm uppercase tracking-widest font-bold mb-2 text-emerald-400 flex items-center gap-2">
+              <span className="p-1.5 bg-emerald-500/20 rounded-lg">📊</span> Bản sao số (Digital Twin)
             </h2>
             
-            <div className="space-y-5">
-              <div>
-                <div className="flex justify-between mb-1.5 text-sm">
-                  <label className="text-slate-300">Ngưỡng chấp nhận lỗi (AQL):</label>
-                  <span className="font-bold text-indigo-300">{aqlThreshold}%</span>
-                </div>
-                <input type="range" min="0.1" max="2.0" step="0.1" value={aqlThreshold} onChange={(e) => setAqlThreshold(parseFloat(e.target.value))} className="w-full accent-indigo-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1.5 text-sm">
-                  <label className="text-slate-300">Nhu cầu SX ngày (Daily Demand):</label>
-                  <span className="font-bold text-cyan-400">{dailyDemand} chiếc/ngày</span>
-                </div>
-                <input type="range" min="20" max="150" step="10" value={dailyDemand} onChange={(e) => setDailyDemand(parseInt(e.target.value))} className="w-full accent-cyan-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1.5 text-sm">
-                  <label className="text-slate-300">Tồn kho an toàn (Safety Stock):</label>
-                  <span className="font-bold text-emerald-400">{safetyStock} chiếc</span>
-                </div>
-                <input type="range" min="50" max="500" step="50" value={safetyStock} onChange={(e) => setSafetyStock(parseInt(e.target.value))} className="w-full accent-emerald-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
-              </div>
-
-              <div>
-                <div className="flex justify-between mb-1.5 text-sm">
-                  <label className="text-slate-300">Lượng đặt hàng (EOQ):</label>
-                  <span className="font-bold text-blue-400">{orderVolume.toLocaleString()} chiếc</span>
-                </div>
-                <input type="range" min="500" max="5000" step="100" value={orderVolume} onChange={(e) => setOrderVolume(parseInt(e.target.value))} className="w-full accent-blue-500 h-1.5 bg-slate-800 rounded-lg cursor-pointer" />
-              </div>
-            </div>
-          </div>
-
-          {/* CỘT 2: BIẾN SỐ RỦI RO ĐỐI TÁC */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col justify-between">
-            <div>
-              <h2 className="text-lg font-bold mb-5 text-amber-400 flex items-center gap-2">
-                <span>⚠️</span> 2. Giả lập Rủi ro (Nhà cung cấp)
-              </h2>
-              
-              <div className="space-y-6">
-                <div>
-                  <div className="flex justify-between mb-2 text-sm">
-                    <label className="text-slate-300">Tỷ lệ lỗi lô hàng thực tế (Defect Rate):</label>
-                    <span className={`font-bold px-2 py-0.5 rounded ${defectRate > aqlThreshold ? 'bg-rose-900/80 text-rose-300' : 'text-amber-400'}`}>{defectRate}%</span>
-                  </div>
-                  <input type="range" min="0" max="3" step="0.1" value={defectRate} onChange={(e) => setDefectRate(parseFloat(e.target.value))} className="w-full accent-rose-500 h-2 bg-slate-800 rounded-lg cursor-pointer" />
-                  <p className="text-xs text-slate-500 mt-1.5">Trượt để giả lập chất lượng linh kiện đầu vào suy giảm.</p>
-                </div>
-
-                <div>
-                  <div className="flex justify-between mb-2 text-sm">
-                    <label className="text-slate-300">Thời gian giao hàng (Lead Time):</label>
-                    <span className="font-bold text-amber-400">{leadTime} Ngày</span>
-                  </div>
-                  <input type="range" min="3" max="20" step="1" value={leadTime} onChange={(e) => setLeadTime(parseInt(e.target.value))} className="w-full accent-amber-500 h-2 bg-slate-800 rounded-lg cursor-pointer" />
-                  <p className="text-xs text-slate-500 mt-1.5">Trượt để giả lập rủi ro chậm trễ vận tải hàng hải/hải quan.</p>
-                </div>
-              </div>
-            </div>
-
-            <button onClick={handleRunSimulation} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-lg shadow-blue-600/20 mt-6 active:scale-95 border border-blue-400/30 uppercase text-sm tracking-wide">
-              Chạy AI Điều Phối Chuỗi Cung Ứng
-            </button>
-          </div>
-
-          {/* CỘT 3: KẾT QUẢ OUTPUT & TÀI CHÍNH */}
-          <div className="bg-slate-900 border border-slate-800 p-5 rounded-2xl shadow-xl flex flex-col justify-between">
-            <div>
-              <h2 className="text-lg font-bold mb-5 text-emerald-400 flex items-center gap-2">
-                <span>📊</span> 3. Báo cáo Tác động (Impact)
-              </h2>
-              
-              {/* Allocation */}
-              <div className="space-y-4 mb-6">
-                <div>
-                  <div className="flex justify-between text-xs mb-1.5 font-semibold text-slate-400">
-                    <span>PO Alpha (Đài Loan)</span>
-                    <span className="text-blue-400">{alphaShare}%</span>
-                  </div>
-                  <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
-                    <div className="bg-blue-500 h-full rounded-full transition-all duration-500" style={{ width: `${alphaShare}%` }}></div>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex justify-between text-xs mb-1.5 font-semibold text-slate-400">
-                    <span>PO Beta (Việt Nam)</span>
-                    <span className="text-orange-400">{betaShare}%</span>
-                  </div>
-                  <div className="w-full bg-slate-800 h-3 rounded-full overflow-hidden border border-slate-700">
-                    <div className="bg-orange-500 h-full rounded-full transition-all duration-500" style={{ width: `${betaShare}%` }}></div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Tài chính & ROP */}
-            <div className="space-y-3">
-              <div className="bg-slate-950 p-3.5 rounded-xl border border-slate-800 flex justify-between items-center">
-                <div className="text-xs text-slate-400 uppercase font-semibold">Chi phí phát sinh<br/>(Delta Cost)</div>
-                <div className={`text-xl font-bold ${deltaCost > 0 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                  {deltaCost > 0 ? `+${deltaCost.toLocaleString()} đ` : `${deltaCost.toLocaleString()} đ`}
-                </div>
-              </div>
-              
-              <div className="bg-slate-950 p-3.5 rounded-xl border border-rose-900/50 shadow-[0_0_15px_rgba(225,29,72,0.1)] flex justify-between items-center relative overflow-hidden">
-                <div className="text-xs text-rose-300/80 uppercase font-bold">Báo động điểm đặt hàng<br/>(Dynamic ROP)</div>
-                <div className="text-3xl font-black text-rose-400 tracking-tighter">
-                  {dynamicRop.toLocaleString()} <span className="text-sm font-medium text-rose-400/50 uppercase tracking-normal">Chiếc</span>
-                </div>
-              </div>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+            {/* Biểu đồ Donut Recharts */}
+            <div className="h-48 w-full -ml-4">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" stroke="none">
+                    {chartData.map((entry, index) => (
+                      <Cell key={
