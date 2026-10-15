@@ -218,10 +218,10 @@ export default function SmartSCMControlCenter() {
           </div>
         </div>
 
-        {/* FOOTER BẢN QUYỀN NHÓM 8 - UTH */}
+        {/* FOOTER BẢN QUYỀN */}
         <div className="mt-12 text-center border-t border-white/10 pt-6 pb-2 text-slate-400 text-xs">
           <p className="font-semibold text-slate-300 tracking-wide">
-            ĐỒ ÁN NGHIÊN CỨU & MÔ PHỎNG SỐ: <span className="text-blue-400 font-extrabold">NHÓM 8</span>
+            Dashboard TechOne Smart SCM Control Center by <span className="text-blue-400 font-extrabold">Nguyễn Hùng</span>
           </p>
           <p className="mt-1 text-slate-500">
             Học phần: 012001604334 • Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
