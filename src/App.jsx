@@ -59,15 +59,7 @@ export default function SmartSCMControlCenter() {
   ];
 
   return (
-    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-200 p-4 md:p-8 selection:bg-blue-500/30 font-['Google_Sans',sans-serif]">
-      {/* Tích hợp trực tiếp Google Sans Font */}
-      <style>{`
-        @import url('https://fonts.cdnfonts.com/css/google-sans');
-        * {
-          font-family: 'Google Sans', -apple-system, BlinkMacSystemFont, sans-serif !important;
-        }
-      `}</style>
-
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-200 p-4 md:p-8 selection:bg-blue-500/30 font-sans">
       <div className="max-w-7xl mx-auto">
         
         {/* Header với Nhận diện Nhóm 8 - UTH */}
@@ -172,7 +164,7 @@ export default function SmartSCMControlCenter() {
               <span className="p-1.5 bg-emerald-500/20 rounded-lg">📊</span> Bản sao số (Digital Twin)
             </h2>
             
-            {/* Biểu đồ Donut với Tooltip chỉ hiện số phần trăm */}
+            {/* Biểu đồ Donut với Tooltip chỉ hiện số */}
             <div className="h-48 w-full -ml-4">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -227,3 +219,8 @@ export default function SmartSCMControlCenter() {
             Học phần: 012001604334 • Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
           </p>
         </div>
+
+      </div>
+    </div>
+  );
+}
