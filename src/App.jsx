@@ -172,7 +172,7 @@ export default function SmartSCMControlCenter() {
               <span className="p-1.5 bg-emerald-500/20 rounded-lg">📊</span> Bản sao số (Digital Twin)
             </h2>
             
-            {/* Biểu đồ Donut với Tooltip sáng rõ */}
+            {/* Biểu đồ Donut với Tooltip chỉ hiện số phần trăm */}
             <div className="h-48 w-full -ml-4">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -185,11 +185,13 @@ export default function SmartSCMControlCenter() {
                     contentStyle={{ 
                       backgroundColor: '#090d16', 
                       borderColor: 'rgba(255, 255, 255, 0.2)', 
-                      borderRadius: '12px',
-                      boxShadow: '0 8px 32px rgba(0,0,0,0.6)'
+                      borderRadius: '10px',
+                      boxShadow: '0 8px 24px rgba(0,0,0,0.6)',
+                      padding: '6px 12px'
                     }} 
-                    itemStyle={{ color: '#ffffff', fontWeight: 'bold' }}
-                    formatter={(value) => [`${value}%`, 'Tỷ lệ']}
+                    itemStyle={{ color: '#ffffff', fontWeight: 'bold', fontSize: '15px' }}
+                    separator=""
+                    formatter={(value) => [`${value}%`, '']}
                   />
                   <Legend verticalAlign="middle" align="right" layout="vertical" wrapperStyle={{fontSize: '12px', fontWeight: '500', color: '#cbd5e1'}}/>
                 </PieChart>
@@ -225,8 +227,3 @@ export default function SmartSCMControlCenter() {
             Học phần: 012001604334 • Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
           </p>
         </div>
-
-      </div>
-    </div>
-  );
-}
