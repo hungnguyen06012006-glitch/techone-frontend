@@ -62,21 +62,36 @@ export default function SmartSCMControlCenter() {
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-200 p-4 md:p-8 font-sans selection:bg-blue-500/30">
       <div className="max-w-7xl mx-auto">
         
-        {/* Header với Gradient Text */}
+        {/* Header với Nhận diện Nhóm 8 - UTH */}
         <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
           <div>
-            <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 tracking-tight drop-shadow-sm">
-              TechOne Smart SCM
-            </h1>
-            <p className="text-slate-400 mt-2 text-sm font-medium tracking-wide uppercase">Trung tâm điều hành chuỗi cung ứng thời gian thực</p>
+            <div className="flex flex-wrap items-center gap-3">
+              <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 tracking-tight drop-shadow-sm">
+                TechOne Smart SCM
+              </h1>
+              <span className="bg-blue-500/20 border border-blue-400/40 text-blue-300 text-xs px-3 py-1 rounded-full font-bold tracking-wider uppercase shadow-[0_0_12px_rgba(59,130,246,0.3)]">
+                Nhóm 8 • UTH
+              </span>
+            </div>
+            <p className="text-slate-300 mt-2 text-sm font-semibold tracking-wide uppercase">
+              Trung tâm điều hành chuỗi cung ứng thời gian thực
+            </p>
+            <p className="text-slate-400 text-xs mt-1 flex items-center gap-1.5 font-medium">
+              <span>🏛️</span> Môn Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
+            </p>
           </div>
-          <div className="flex gap-3">
-            <span className="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-xs font-bold tracking-widest text-blue-300">MCU-ARM32</span>
-            <span className="bg-white/5 backdrop-blur-md border border-white/10 px-4 py-2 rounded-xl text-xs font-bold tracking-widest text-purple-300">CAP-X7R</span>
+          
+          <div className="flex gap-2">
+            <span className="bg-white/5 backdrop-blur-md border border-white/10 px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-wider text-blue-300">
+              MCU-ARM32
+            </span>
+            <span className="bg-white/5 backdrop-blur-md border border-white/10 px-3.5 py-1.5 rounded-xl text-xs font-bold tracking-wider text-purple-300">
+              CAP-X7R
+            </span>
           </div>
         </div>
 
-        {/* Trạm Cảnh báo (Glassmorphism) */}
+        {/* Trạm Cảnh báo */}
         <div className={`p-5 rounded-2xl mb-8 border backdrop-blur-md transition-all duration-500 flex items-center gap-4 ${statusStyle}`}>
           <div className="text-4xl drop-shadow-lg">{isCritical ? "🚨" : "🛡️"}</div>
           <div>
@@ -122,69 +137,4 @@ export default function SmartSCMControlCenter() {
               <div className="space-y-8">
                 <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
                   <div className="flex justify-between mb-3 text-sm">
-                    <label className="text-slate-300 font-medium">Tỷ lệ lỗi lô hàng (Defect Rate)</label>
-                    <span className={`font-black text-lg ${defectRate > aqlThreshold ? 'text-rose-400' : 'text-amber-400'}`}>{defectRate}%</span>
-                  </div>
-                  <input type="range" min="0" max="3" step="0.1" value={defectRate} onChange={(e) => setDefectRate(parseFloat(e.target.value))} className="w-full accent-rose-500 h-2 bg-white/10 rounded-lg cursor-pointer" />
-                </div>
-
-                <div className="bg-black/20 p-4 rounded-2xl border border-white/5">
-                  <div className="flex justify-between mb-3 text-sm">
-                    <label className="text-slate-300 font-medium">Độ trễ vận tải (Lead Time)</label>
-                    <span className="font-black text-lg text-amber-400">{leadTime} Ngày</span>
-                  </div>
-                  <input type="range" min="3" max="20" step="1" value={leadTime} onChange={(e) => setLeadTime(parseInt(e.target.value))} className="w-full accent-amber-500 h-2 bg-white/10 rounded-lg cursor-pointer" />
-                </div>
-              </div>
-            </div>
-
-            <button onClick={handleRunSimulation} className="relative z-10 w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-black py-4 px-4 rounded-2xl transition-all shadow-[0_0_20px_rgba(79,70,229,0.3)] mt-8 hover:shadow-[0_0_30px_rgba(79,70,229,0.5)] hover:-translate-y-1 active:translate-y-0 uppercase tracking-widest text-sm">
-              🚀 Kích hoạt AI Mô Phỏng
-            </button>
-          </div>
-
-          {/* CỘT 3: KẾT QUẢ ĐẦU RA */}
-          <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col">
-            <h2 className="text-sm uppercase tracking-widest font-bold mb-2 text-emerald-400 flex items-center gap-2">
-              <span className="p-1.5 bg-emerald-500/20 rounded-lg">📊</span> Bản sao số (Digital Twin)
-            </h2>
-            
-            {/* Biểu đồ Donut Recharts với Tooltip sáng rõ */}
-            <div className="h-48 w-full -ml-4">
-              <ResponsiveContainer height="100%" width="100%">
-                <PieChart>
-                  <Pie cx="50%" cy="50%" data="{chartData}" dataKey="value" innerRadius="{50}" outerRadius="{70}" paddingAngle="{5}" stroke="none">
-                    {chartData.map((entry, index) => (
-                      <Cell fill="{entry.color}" key="{`cell-${index}`}"/>
-                    ))}
-                  </Pie>
-                  <Tooltip '#0b0f19', '#ffffff', '0 '12px', '1px 'bold' 0, 0.2)', 0.5)' 24px 255, 8px backgroundColor: border: borderRadius: boxShadow: color: contentStyle="{{" fontWeight: formatter="{(value)" itemStyle="{{" rgba(0, rgba(255, solid }}> [`${value}%`, 'Tỷ lệ']}
-                  />
-                  <Legend '#cbd5e1'}} '12px', '500', align="right" color: fontWeight: layout="vertical" verticalAlign="middle" wrapperStyle="{{fontSize:"/>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="space-y-4 mt-auto">
-              <div className="bg-black/30 p-4 rounded-2xl border border-white/5 flex justify-between items-center group hover:bg-black/40 transition-colors">
-                <div className="text-xs text-slate-400 uppercase font-bold tracking-wider">Tác động Tài chính<br/><span className="text-white/30 text-[10px]">Delta Cost</span></div>
-                <div className={`text-2xl font-black tracking-tight ${deltaCost > 0 ? 'text-rose-400 drop-shadow-[0_0_10px_rgba(225,29,72,0.8)]' : 'text-emerald-400 drop-shadow-[0_0_10px_rgba(16,185,129,0.8)]'}`}>
-                  {deltaCost > 0 ? `+${deltaCost.toLocaleString()} ₫` : `${deltaCost.toLocaleString()} ₫`}
-                </div>
-              </div>
-              
-              <div className="bg-gradient-to-br from-rose-900/40 to-black/40 p-4 rounded-2xl border border-rose-500/30 flex justify-between items-center relative overflow-hidden group">
-                <div className="absolute inset-0 bg-rose-500/10 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                <div className="text-xs text-rose-300 uppercase font-bold tracking-wider z-10">Báo động ROP<br/><span className="text-rose-400/50 text-[10px]">Dynamic Reorder Point</span></div>
-                <div className="text-4xl font-black text-rose-400 tracking-tighter drop-shadow-[0_0_15px_rgba(225,29,72,0.6)] z-10">
-                  {dynamicRop.toLocaleString()} <span className="text-sm font-medium text-rose-400/60 uppercase tracking-widest">chiếc</span>
-                </div>
-              </div>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+                    <label className="text-slate-30
