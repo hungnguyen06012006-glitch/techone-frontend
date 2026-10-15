@@ -112,7 +112,6 @@ export default function SmartSCMControlCenter() {
 
           {/* CỘT 2: GIẢ LẬP RỦI RO */}
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col justify-between relative overflow-hidden">
-            {/* Background glow effect */}
             <div className="absolute -top-24 -right-24 w-48 h-48 bg-rose-500/10 blur-3xl rounded-full"></div>
             
             <div className="relative z-10">
@@ -150,17 +149,18 @@ export default function SmartSCMControlCenter() {
               <span className="p-1.5 bg-emerald-500/20 rounded-lg">📊</span> Bản sao số (Digital Twin)
             </h2>
             
-            {/* Biểu đồ Donut Recharts */}
+            {/* Biểu đồ Donut Recharts với Tooltip sáng rõ */}
             <div className="h-48 w-full -ml-4">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer height="100%" width="100%">
                 <PieChart>
-                  <Pie data={chartData} cx="50%" cy="50%" innerRadius={50} outerRadius={70} paddingAngle={5} dataKey="value" stroke="none">
+                  <Pie cx="50%" cy="50%" data="{chartData}" dataKey="value" innerRadius="{50}" outerRadius="{70}" paddingAngle="{5}" stroke="none">
                     {chartData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
+                      <Cell fill="{entry.color}" key="{`cell-${index}`}"/>
                     ))}
                   </Pie>
-                  <Tooltip contentStyle={{backgroundColor: '#0f172a', border: '1px solid #334155', borderRadius: '12px'}} itemStyle={{fontWeight: 'bold'}}/>
-                  <Legend verticalAlign="middle" align="right" layout="vertical" wrapperStyle={{fontSize: '12px', fontWeight: '500', color: '#cbd5e1'}}/>
+                  <Tooltip '#0b0f19', '#ffffff', '0 '12px', '1px 'bold' 0, 0.2)', 0.5)' 24px 255, 8px backgroundColor: border: borderRadius: boxShadow: color: contentStyle="{{" fontWeight: formatter="{(value)" itemStyle="{{" rgba(0, rgba(255, solid }}> [`${value}%`, 'Tỷ lệ']}
+                  />
+                  <Legend '#cbd5e1'}} '12px', '500', align="right" color: fontWeight: layout="vertical" verticalAlign="middle" wrapperStyle="{{fontSize:"/>
                 </PieChart>
               </ResponsiveContainer>
             </div>
