@@ -111,15 +111,23 @@ export default function SmartSCMControlCenter() {
               {[
                 { label: "Ngưỡng AQL", val: `${aqlThreshold}%`, setter: setAqlThreshold, state: aqlThreshold, min: 0.1, max: 2.0, step: 0.1, color: "accent-indigo-500" },
                 { label: "Nhu cầu ngày", val: dailyDemand, setter: setDailyDemand, state: dailyDemand, min: 20, max: 150, step: 10, color: "accent-cyan-500" },
-                { label: "Tồn kho an toàn", val: safetyStock, setter: setSafetyStock, state: safetyStock, min: 50, max: 500, step: 50, color: "accent-emerald-500" },
-                { label: "Lượng đặt hàng", val: orderVolume.toLocaleString(), setter: setOrderVolume, state: orderVolume, min: 500, max: 5000, step: 100, color: "accent-blue-500" }
+                { label: "Tồn kho an toàn", val: safetyStock, setter: setSafetyStock, state: safetyStock, min: 50, max: 500, step: 10, color: "accent-emerald-500" },
+                { label: "Lượng đặt hàng", val: orderVolume.toLocaleString(), setter: setOrderVolume, state: orderVolume, min: 500, max: 5000, step: 10, color: "accent-blue-500" }
               ].map((item, idx) => (
                 <div key={idx} className="group">
                   <div className="flex justify-between mb-2 text-sm">
                     <label className="text-slate-400 font-medium group-hover:text-slate-200 transition-colors">{item.label}</label>
                     <span className="font-bold text-white bg-white/10 px-2 py-0.5 rounded-md">{item.val}</span>
                   </div>
-                  <input type="range" min={item.min} max={item.max} step={item.step} value={item.state} onChange={(e) => item.setter(parseFloat(e.target.value))} className={`w-full h-1.5 bg-white/10 rounded-lg cursor-pointer ${item.color}`} />
+                  <input 
+                    type="range" 
+                    min={item.min} 
+                    max={item.max} 
+                    step={item.step} 
+                    value={item.state} 
+                    onChange={(e) => item.setter(parseFloat(e.target.value))} 
+                    className={`w-full h-1.5 bg-white/10 rounded-lg cursor-pointer ${item.color}`} 
+                  />
                 </div>
               ))}
             </div>
