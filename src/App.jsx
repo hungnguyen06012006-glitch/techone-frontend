@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 
+// Bảng màu mặc định cho các nhà cung cấp
+const COLOR_PALETTE = ['#3b82f6', '#f97316', '#a855f7', '#10b981', '#06b6d4', '#ec4899', '#eab308', '#6366f1'];
+
 export default function SmartSCMControlCenter() {
   // --- BIẾN SỐ NỘI BỘ (TECHONE) ---
   const [aqlThreshold, setAqlThreshold] = useState(1.0);
@@ -8,62 +11,142 @@ export default function SmartSCMControlCenter() {
   const [safetyStock, setSafetyStock] = useState(200);  
   const [orderVolume, setOrderVolume] = useState(1200); 
 
-  // --- BIẾN SỐ RỦI RO (NHÀ CUNG CẤP) ---
+  // --- BIẾN SỐ RỦI RO (NHÀ CUNG CẤP CHỦ LỰC) ---
   const [defectRate, setDefectRate] = useState(0.5);    
   const [leadTime, setLeadTime] = useState(8);          
 
-  // --- TRẠNG THÁI KẾT QUẢ ---
-  const [alphaShare, setAlphaShare] = useState(60);
-  const [betaShare, setBetaShare] = useState(30);
-  const [gammaShare, setGammaShare] = useState(10);
-  
+  // --- DANH SÁCH NHÀ CUNG CẤP TÙY BIẾN (CUSTOM SOURCING MATRIX) ---
+  const [suppliers, setSuppliers] = useState([
+    { id: 1, name: 'Alpha (Đài Loan - Chủ lực)', baseShare: 60, currentShare: 60, price: 250000, color: '#3b82f6', isPrimary: true },
+    { id: 2, name: 'Beta (Việt Nam - Nhanh)', baseShare: 30, currentShare: 30, price: 260000, color: '#f97316', isPrimary: false },
+    { id: 3, name: 'Gamma (Ấn Độ - Giá rẻ)', baseShare: 10, currentShare: 10, price: 245000, color: '#a855f7', isPrimary: false }
+  ]);
+
+  // Trạng thái vận hành
   const [statusStyle, setStatusStyle] = useState("bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]");
-  const [systemMsg, setSystemMsg] = useState("Hệ thống ổn định. Đang vận hành chiến lược Tri-Sourcing (Alpha 60% - Beta 30% - Gamma 10%).");
+  const [systemMsg, setSystemMsg] = useState("Hệ thống ổn định. Đang vận hành cấu trúc đa nguồn cung chuẩn.");
   const [dynamicRop, setDynamicRop] = useState(680);
   const [deltaCost, setDeltaCost] = useState(0);
   const [isCritical, setIsCritical] = useState(false);
 
-  // THUẬT TOÁN AI
+  // Tính tổng % phân bổ hiện tại của danh sách
+  const totalBaseShare = suppliers.reduce((sum, s) => sum + s.baseShare, 0);
+
+  // --- CÁC HÀM QUẢN TRỊ NGUỒN CUNG ---
+  // 1. Cập nhật thuộc tính của 1 NCC
+  const handleUpdateSupplier = (id, field, value) => {
+    setSuppliers(prev => prev.map(s => {
+      if (s.id === id) {
+        const updated = { ...s, [field]: value };
+        if (field === 'baseShare') {
+          updated.currentShare = value; // Đồng bộ khi chỉnh sửa
+        }
+        return updated;
+      }
+      return s;
+    }));
+  };
+
+  // 2. Thêm nguồn cung mới
+  const handleAddSupplier = () => {
+    const nextId = Date.now();
+    const colorIndex = suppliers.length % COLOR_PALETTE.length;
+    const newSupp = {
+      id: nextId,
+      name: `NCC Mới #${suppliers.length + 1}`,
+      baseShare: 10,
+      currentShare: 10,
+      price: 255000,
+      color: COLOR_PALETTE[colorIndex],
+      isPrimary: false
+    };
+    setSuppliers([...suppliers, newSupp]);
+  };
+
+  // 3. Xóa nguồn cung
+  const handleDeleteSupplier = (id) => {
+    if (suppliers.length <= 2) {
+      alert("Hệ thống đa nguồn cung cần tối thiểu 2 đối tác để duy trì cơ chế phòng ngừa rủi ro!");
+      return;
+    }
+    setSuppliers(suppliers.filter(s => s.id !== id));
+  };
+
+  // 4. Tự động cân bằng tổng tỷ lệ về đúng 100%
+  const handleNormalizeShares = () => {
+    if (totalBaseShare === 0) return;
+    let accumulated = 0;
+    const balanced = suppliers.map((s, idx) => {
+      if (idx === suppliers.length - 1) {
+        return { ...s, baseShare: 100 - accumulated, currentShare: 100 - accumulated };
+      }
+      const newShare = Math.round((s.baseShare / totalBaseShare) * 100);
+      accumulated += newShare;
+      return { ...s, baseShare: newShare, currentShare: newShare };
+    });
+    setSuppliers(balanced);
+  };
+
+  // --- THUẬT TOÁN AI PHÂN BỔ & MÔ PHỎNG ---
   const handleRunSimulation = () => {
+    // 1. Tính toán Điểm ROP Động
     const calculatedRop = Math.round((dailyDemand * leadTime) + safetyStock);
     setDynamicRop(calculatedRop);
 
-    let alpha = 60, beta = 30, gamma = 10;
-    let msg = "", critical = false, style = "";
+    let critical = false;
+    let style = "";
+    let msg = "";
+    let updatedSuppliers = [];
 
+    // 2. Kiểm định AQL với nhà cung cấp chính (Vị trí đầu tiên)
     if (defectRate > aqlThreshold) {
-      alpha = 0; beta = 70; gamma = 30;
       critical = true;
       style = "bg-rose-500/20 border-rose-500 text-rose-400 animate-pulse shadow-[0_0_30px_rgba(225,29,72,0.4)]";
-      msg = `⚠️ BÁO ĐỘNG SMT: Lỗi Alpha (${defectRate}%) vượt AQL. Kích hoạt khẩn cấp: Ngắt PO Alpha, chuyển sang Beta (70%) & Gamma (30%)!`;
+      msg = `⚠️ BÁO ĐỘNG SMT: Lỗi của đối tác chính (${defectRate}%) vượt AQL (${aqlThreshold}%). AI kích hoạt khẩn cấp: Ngắt PO của ${suppliers[0]?.name || 'NCC Chủ lực'} và tái phân bổ sang các nguồn phụ!`;
+
+      // Đóng băng NCC đầu tiên (0%), lấy toàn bộ % của nó phân bổ đều/theo tỷ trọng cho các NCC còn lại
+      const primaryShare = suppliers[0].baseShare;
+      const otherSuppliers = suppliers.slice(1);
+      const totalOtherShare = otherSuppliers.reduce((sum, s) => sum + s.baseShare, 0) || 1;
+
+      updatedSuppliers = suppliers.map((s, idx) => {
+        if (idx === 0) return { ...s, currentShare: 0 };
+        // Phân bổ phần trăm dôi dư theo tỷ trọng hiện tại của từng NCC phụ
+        const extra = Math.round((s.baseShare / totalOtherShare) * primaryShare);
+        return { ...s, currentShare: s.baseShare + extra };
+      });
     } else {
       critical = false;
       style = "bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_20px_rgba(16,185,129,0.2)]";
-      msg = `Chuỗi cung ứng an toàn. Tỷ lệ lỗi (${defectRate}%) đạt chuẩn. Giữ nguyên cấu trúc Multi-Sourcing.`;
+      msg = `Chuỗi cung ứng an toàn. Tỷ lệ lỗi (${defectRate}%) đạt chuẩn. Duy trì ma trận cung ứng tùy chỉnh theo kế hoạch.`;
+      // Khôi phục về tỷ lệ cấu hình gốc
+      updatedSuppliers = suppliers.map(s => ({ ...s, currentShare: s.baseShare }));
     }
 
-    setAlphaShare(alpha); setBetaShare(beta); setGammaShare(gamma);
-    setStatusStyle(style); setSystemMsg(msg); setIsCritical(critical);
+    setSuppliers(updatedSuppliers);
+    setStatusStyle(style);
+    setSystemMsg(msg);
+    setIsCritical(critical);
 
-    const priceAlpha = 250000, priceBeta = 260000, priceGamma = 245000;
-    const baseCost = (0.6 * priceAlpha + 0.3 * priceBeta + 0.1 * priceGamma) * orderVolume;
-    const newCost = ((alpha / 100) * priceAlpha + ((beta / 100) * priceBeta) + ((gamma / 100) * priceGamma)) * orderVolume;
+    // 3. Phân tích tác động tài chính Delta Cost
+    const baseCost = suppliers.reduce((sum, s) => sum + ((s.baseShare / 100) * s.price * orderVolume), 0);
+    const newCost = updatedSuppliers.reduce((sum, s) => sum + ((s.currentShare / 100) * s.price * orderVolume), 0);
     setDeltaCost(newCost - baseCost);
   };
 
   // Dữ liệu cho biểu đồ Donut
-  const chartData = [
-    { name: 'Alpha (Đài Loan)', value: alphaShare, color: '#3b82f6' },
-    { name: 'Beta (Việt Nam)', value: betaShare, color: '#f97316' },
-    { name: 'Gamma (Ấn Độ)', value: gammaShare, color: '#a855f7' }
-  ];
+  const chartData = suppliers.map(s => ({
+    name: s.name,
+    value: s.currentShare,
+    color: s.color
+  }));
 
   return (
     <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-slate-900 via-slate-950 to-black text-slate-200 p-4 md:p-8 selection:bg-blue-500/30 font-sans">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto space-y-6">
         
-        {/* Header với Nhận diện Nhóm 8 - UTH */}
-        <div className="mb-8 flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-white/10 pb-6">
+        {/* HEADER */}
+        <div className="border-b border-white/10 pb-6 flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-cyan-400 to-emerald-400 tracking-tight drop-shadow-sm">
@@ -74,7 +157,7 @@ export default function SmartSCMControlCenter() {
               </span>
             </div>
             <p className="text-slate-300 mt-2 text-sm font-semibold tracking-wide uppercase">
-              Trung tâm điều hành chuỗi cung ứng thời gian thực
+              Trung tâm điều hành chuỗi cung ứng thời gian thực & Bản sao số (Digital Twin)
             </p>
             <p className="text-slate-400 text-xs mt-1.5 flex items-center gap-1.5 font-medium">
               <span>🏛️</span> Học phần: 012001604334 • Quản trị thu mua • Trường Đại học Giao thông Vận tải TP.HCM (UTH)
@@ -91,8 +174,8 @@ export default function SmartSCMControlCenter() {
           </div>
         </div>
 
-        {/* Trạm Cảnh báo */}
-        <div className={`p-5 rounded-2xl mb-8 border backdrop-blur-md transition-all duration-500 flex items-center gap-4 ${statusStyle}`}>
+        {/* TRẠM CẢNH BÁO */}
+        <div className={`p-5 rounded-2xl border backdrop-blur-md transition-all duration-500 flex items-center gap-4 ${statusStyle}`}>
           <div className="text-4xl drop-shadow-lg">{isCritical ? "🚨" : "🛡️"}</div>
           <div>
             <h2 className="text-xs uppercase tracking-widest font-black opacity-80 mb-1">Trạng thái hệ thống AI</h2>
@@ -100,6 +183,7 @@ export default function SmartSCMControlCenter() {
           </div>
         </div>
 
+        {/* 3 CỘT ĐIỀU HÀNH CHÍNH */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           
           {/* CỘT 1: THIẾT LẬP NỘI BỘ */}
@@ -166,13 +250,13 @@ export default function SmartSCMControlCenter() {
             </button>
           </div>
 
-          {/* CỘT 3: KẾT QUẢ ĐẦU RA */}
+          {/* CỘT 3: KẾT QUẢ ĐẦU RA (DIGITAL TWIN) */}
           <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl flex flex-col">
             <h2 className="text-sm uppercase tracking-widest font-bold mb-2 text-emerald-400 flex items-center gap-2">
               <span className="p-1.5 bg-emerald-500/20 rounded-lg">📊</span> Bản sao số (Digital Twin)
             </h2>
             
-            {/* Biểu đồ Donut với Tooltip chỉ hiện số */}
+            {/* Biểu đồ Donut tự co giãn theo số lượng NCC */}
             <div className="h-48 w-full -ml-4">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
@@ -193,7 +277,7 @@ export default function SmartSCMControlCenter() {
                     separator=""
                     formatter={(value) => [`${value}%`, '']}
                   />
-                  <Legend verticalAlign="middle" align="right" layout="vertical" wrapperStyle={{fontSize: '12px', fontWeight: '500', color: '#cbd5e1'}}/>
+                  <Legend verticalAlign="middle" align="right" layout="vertical" wrapperStyle={{fontSize: '11px', fontWeight: '500', color: '#cbd5e1'}}/>
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -218,8 +302,120 @@ export default function SmartSCMControlCenter() {
           </div>
         </div>
 
+        {/* --- KHU VỰC MỚI: QUẢN TRỊ & TÙY BIẾN NGUỒN CUNG CẤP (CUSTOM SOURCING MATRIX) --- */}
+        <div className="bg-white/5 backdrop-blur-xl border border-white/10 p-6 rounded-3xl shadow-2xl">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 pb-4 border-b border-white/10">
+            <div>
+              <h2 className="text-lg font-bold text-cyan-400 flex items-center gap-2">
+                <span>🏭</span> Quản Trị & Phân Bổ Nguồn Cung (Custom Sourcing Matrix)
+              </h2>
+              <p className="text-xs text-slate-400 mt-1">
+                Tùy chỉnh số lượng nhà cung cấp, đơn giá mua hàng và tỷ lệ phân bổ PO linh hoạt theo từng kịch bản.
+              </p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Chỉ báo tổng % */}
+              <div className={`px-3 py-1.5 rounded-xl border text-xs font-bold flex items-center gap-2 ${
+                totalBaseShare === 100 
+                  ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400' 
+                  : 'bg-amber-500/10 border-amber-500/40 text-amber-400'
+              }`}>
+                <span>Tổng phân bổ: {totalBaseShare}%</span>
+                {totalBaseShare !== 100 && (
+                  <button 
+                    onClick={handleNormalizeShares}
+                    className="bg-amber-500 hover:bg-amber-400 text-black px-2 py-0.5 rounded text-[11px] font-black uppercase transition-all"
+                  >
+                    ⚡ Cân bằng 100%
+                  </button>
+                )}
+              </div>
+
+              {/* Nút Thêm nhà cung cấp */}
+              <button 
+                onClick={handleAddSupplier}
+                className="bg-blue-600/30 hover:bg-blue-600 border border-blue-500/40 text-blue-200 hover:text-white px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 active:scale-95"
+              >
+                <span>➕</span> Thêm nguồn cung
+              </button>
+            </div>
+          </div>
+
+          {/* Danh sách các nhà cung ứng */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {suppliers.map((supp, index) => (
+              <div 
+                key={supp.id} 
+                className="bg-black/30 p-4 rounded-2xl border border-white/5 relative group hover:border-white/20 transition-all"
+              >
+                {/* Header thẻ: Tên & Nút xóa */}
+                <div className="flex items-center justify-between gap-2 mb-3">
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ backgroundColor: supp.color }}></span>
+                    <input 
+                      type="text" 
+                      value={supp.name} 
+                      onChange={(e) => handleUpdateSupplier(supp.id, 'name', e.target.value)}
+                      className="bg-transparent border-b border-white/10 hover:border-white/30 focus:border-blue-400 focus:outline-none text-sm font-bold text-white w-full transition-colors"
+                    />
+                  </div>
+                  {suppliers.length > 2 && (
+                    <button 
+                      onClick={() => handleDeleteSupplier(supp.id)}
+                      title="Xóa nhà cung ứng này"
+                      className="text-slate-500 hover:text-rose-400 text-sm p-1 rounded-lg hover:bg-rose-500/10 transition-colors"
+                    >
+                      🗑️
+                    </button>
+                  )}
+                </div>
+
+                {/* Đơn giá */}
+                <div className="flex justify-between items-center mb-3 text-xs">
+                  <span className="text-slate-400">Đơn giá mua:</span>
+                  <div className="flex items-center gap-1">
+                    <input 
+                      type="number" 
+                      value={supp.price} 
+                      onChange={(e) => handleUpdateSupplier(supp.id, 'price', parseInt(e.target.value) || 0)}
+                      className="bg-white/5 border border-white/10 rounded px-2 py-0.5 text-right font-mono font-bold text-amber-300 w-28 focus:outline-none focus:border-amber-400"
+                    />
+                    <span className="text-slate-500">₫</span>
+                  </div>
+                </div>
+
+                {/* Thanh kéo phần trăm phân bổ */}
+                <div>
+                  <div className="flex justify-between items-center mb-1 text-xs">
+                    <span className="text-slate-400">Tỷ lệ phân bổ (PO Share):</span>
+                    <span className="font-bold font-mono px-2 py-0.5 rounded bg-white/10" style={{ color: supp.color }}>
+                      {supp.baseShare}%
+                    </span>
+                  </div>
+                  <input 
+                    type="range" 
+                    min="0" 
+                    max="100" 
+                    step="5" 
+                    value={supp.baseShare} 
+                    onChange={(e) => handleUpdateSupplier(supp.id, 'baseShare', parseInt(e.target.value))}
+                    className="w-full h-1.5 bg-white/10 rounded-lg cursor-pointer accent-blue-500"
+                  />
+                </div>
+
+                {index === 0 && (
+                  <span className="absolute top-2 right-9 text-[10px] bg-blue-500/20 text-blue-300 px-2 py-0.5 rounded-full font-bold">
+                    Đối tác chính
+                  </span>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* FOOTER BẢN QUYỀN */}
-        <div className="mt-12 text-center border-t border-white/10 pt-6 pb-2 text-slate-400 text-xs">
+        <div className="text-center border-t border-white/10 pt-6 pb-2 text-slate-400 text-xs">
           <p className="font-semibold text-slate-300 tracking-wide">
             Dashboard TechOne Smart SCM Control Center by <span className="text-blue-400 font-extrabold">Nguyễn Hùng</span>
           </p>
